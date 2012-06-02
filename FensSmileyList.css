@@ -1,0 +1,8 @@
+#smileyTable {
+	text-align: center;
+}
+#smileyTable a {
+	display: inline-block;
+	margin: 2px;
+	padding: 3px;
+}
