@@ -1,20 +1,25 @@
 // Building or reusing namespace
-if (typeof info == 'undefined') {
-	info = new Object();
-}
-if (typeof info.fen-code == 'undefined') {
-	info.fen-code = new Object();
+var info = info || {};
+if (typeof info.fen_code === 'undefined') {
+	info.fen_code = {};
 }
 
 /** BBCode manager class */
-info.fen-code.BBCodeManager = function() {
+info.fen_code.BBCodeManager = function() {
 	/** List of known BBCodes and associated replacement functions */
-	this.bbcodes = new Object();
+	this.bbcodes = {};
 
 	/** Adds a BBCode to the known list */
 	this.addBBCode = function(name, replaceFct) {
-		this.bbcodes[name] = replaceFct;
+		if (typeof name === 'string'
+				&& typeof replaceFct === 'function') {
+			this.bbcodes[name] = replaceFct;
+		} else {
+			throw new Error('Illegal datatype for addBBCode parameters, expected '
+				+ '(string, function) but was (' + typeof name + ', ' + typeof replaceFct + ')');
+		}
 	};
+
 	/** Applies the BBCode filters to a set of DOM trees */
 	this.applyTo = function(domTrees) {
 		domTrees.each(function(domTree) {
@@ -22,20 +27,20 @@ info.fen-code.BBCodeManager = function() {
 			var elems = domTreeStr.match(/\[[^\]]+\][^\[]*\[\/[^\]]+\]/g);
 			if (elems) {
 				elems.each(function(elem) {
-					var bbcode = info.fen-code.BBCodeManager.parseBBCode(elem);
-					if (typeof bbcode != 'undefined'
-							&& typeof this.bbcodes[bbcode.name] != 'undefined') {
+					var bbcode = info.fen_code.BBCodeManager.parseBBCode(elem);
+					if (typeof bbcode === 'object'
+							&& typeof this.bbcodes[bbcode.name] === 'function') {
 						var bbcodeRep = this.bbcodes[bbcode.name](bbcode);
 						domTreeStr.split(elem).join(bbcodeRep);
 					}
-				};
+				});
 			}
 		});
 	};
 };
 
 /** Provided with a string describing a BBCode element, returns a structure describing that element */
-info.fen-code.BBCodeManager.parseBBCode = function(bbcodeStr) {
+info.fen_code.BBCodeManager.parseBBCode = function(bbcodeStr) {
 	var tmp = bbcodeStr.match(/^\[([^=]+)(=[^\]]+)?\](.*)\[\/([^\]]+)\]$/i);
 	if (tmp) {
 		// Opening and ending tag must match
@@ -55,7 +60,4 @@ info.fen-code.BBCodeManager.parseBBCode = function(bbcodeStr) {
 	}
 };
 
-info.fen-code.BBCodeManager.INSTANCE = new info.fen-code.BBCodeManager();
-
-// TODO check 'var' keyword usage
-// TODO check 'typeof obj == 'undefined'' vs. 'obj'
+info.fen_code.BBCodeManager.INSTANCE = new info.fen_code.BBCodeManager();
